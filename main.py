@@ -43,6 +43,16 @@ def main():
     with open(path, "w", encoding="utf-8", newline="") as handle:
         handle.write(text)
     os.chmod(path, 0o644)
+    # Read-back verification: the bytes on disk must be exactly the entry
+    # text — one line, no control characters, no trailing newline.
+    with open(path, "r", encoding="utf-8", newline="") as handle:
+        written = handle.read()
+    if written != text:
+        raise SystemExit("read-back mismatch: output differs from entry text")
+    if "\n" in written or "\r" in written:
+        raise SystemExit("entry output must be a single line")
+    if any(ord(ch) < 0x20 for ch in written):
+        raise SystemExit("entry output must not contain control characters")
 
 
 if __name__ == "__main__":
